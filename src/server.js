@@ -1,12 +1,12 @@
 import mongoose from "mongoose";
 import app from "./app.js";
-import dotenv from "dotenv";
-dotenv.config();
+import { config } from "./config.js";
+
 const db = mongoose.connection;
 
 app.listen(3000, async () => {
   console.log("Connecting to database");
-  await mongoose.connect(process.env.MONGODB_URI);
+  await mongoose.connect(config.MONGODB_URI);
 });
 
 db.on("error", (error) => {

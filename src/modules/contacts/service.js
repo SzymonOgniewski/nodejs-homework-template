@@ -1,6 +1,6 @@
 import { Contact } from "./model.js";
 
-export const getAll = () => Contact.find({});
+export const getAll = (query) => Contact.find(query);
 
 export const getById = (id) => Contact.findOne({ _id: id });
 
