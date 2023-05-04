@@ -74,3 +74,23 @@ export const logout = async (req, res) => {
 
   return res.json({ message: "User successfully logged out" }).status(204);
 };
+
+export const sub = async (req, res) => {
+  const user = req.user;
+  if (!user) return res.status(401).json({ message: "Not authorized" });
+  const id = user._id;
+  if (
+    req.body.subscription === "starter" ||
+    req.body.subscription === "pro" ||
+    req.body.subscription === "business"
+  ) {
+    const subscription = (user.subscription = req.body.subscription);
+    await UserService.sub(id, subscription);
+  } else {
+    return res.status(400).json({ message: "Bad request" });
+  }
+
+  return res
+    .json({ message: `Changed subscription to ${user.subscription}` })
+    .status(200);
+};
