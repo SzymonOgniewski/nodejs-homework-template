@@ -1,5 +1,6 @@
 import * as ContactService from "./service.js";
 import Joi from "joi";
+import { Contact } from "./model.js";
 
 const validationSchema = Joi.object({
   name: Joi.string()
@@ -12,9 +13,21 @@ const validationSchema = Joi.object({
 });
 
 export const getAllContacts = async (req, res) => {
+  let { page = 1, limit = 10, favorite } = req.query;
+  const query = favorite ? { favorite: true } : {};
   try {
-    const contacts = await ContactService.getAll();
-    return res.json(contacts);
+    const contacts = await ContactService.getAll(query)
+      .skip((page - 1) * limit)
+      .limit(limit);
+    const total = await Contact.countDocuments(query);
+    const totalPages = Math.ceil(total / limit);
+    return res.status(200).json({
+      page,
+      limit,
+      total,
+      totalPages,
+      data: contacts,
+    });
   } catch (error) {
     return res.sendStatus(500);
   }
