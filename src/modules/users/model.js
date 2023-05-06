@@ -21,5 +21,6 @@ export const User = model(
       type: String,
       default: null,
     },
+    avatarURL: { type: String },
   })
 );

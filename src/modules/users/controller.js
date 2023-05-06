@@ -3,7 +3,10 @@ import Joi from "joi";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { config } from "../../config.js";
-
+import gravatar from "gravatar";
+import Jimp from "jimp";
+import path from "node:path";
+import fs from "node:fs/promises";
 const userValidation = Joi.object({
   email: Joi.string().email().required(),
   password: Joi.string()
@@ -31,7 +34,8 @@ export const signUp = async (req, res) => {
     if (error) return res.status(400).json(error);
     const salt = bcrypt.genSaltSync(10);
     const hashedPassword = bcrypt.hashSync(password, salt);
-    const user = await UserService.signUp(email, hashedPassword);
+    const avatar = gravatar.url(email, { s: "200", r: "pg", d: "mp" });
+    const user = await UserService.signUp(email, hashedPassword, avatar);
     return res.status(201).json(sanitizeRegisteredUser(user));
   } catch (error) {
     if (error.code === 11000) {
@@ -93,4 +97,30 @@ export const sub = async (req, res) => {
   return res
     .json({ message: `Changed subscription to ${user.subscription}` })
     .status(200);
+};
+
+export const avatarUpdate = async (req, res, next) => {
+  const id = req.user._id;
+  const filename = req.file.filename;
+  const tmpPath = path.join(process.cwd(), "tmp", filename);
+  const avatarDir = path.join(process.cwd(), "src", "public", "avatars", "/");
+  const newAvatarURL = "localhost:3000/avatars/" + filename;
+  const currentAvatar = req.user.avatarURL;
+  const avatarToRemove = currentAvatar.replace("localhost:3000/avatars/", "");
+  try {
+    Jimp.read(tmpPath).then((avatar) => {
+      return avatar.resize(250, 250).write(`${avatarDir + filename}`);
+    });
+    await fs.unlink(req.file.path);
+    await UserService.avatarUpdate(id, newAvatarURL);
+    try {
+      await fs.unlink(`${avatarDir + avatarToRemove}`);
+    } catch (error) {
+      console.error;
+    }
+  } catch (error) {
+    await fs.unlink(req.file.path);
+    return res.sendStatus(500);
+  }
+  res.json({ message: "Avatar updated" });
 };

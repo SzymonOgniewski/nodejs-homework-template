@@ -1,7 +1,7 @@
 import passport from "passport";
 import { ExtractJwt, Strategy } from "passport-jwt";
-import { User } from "./modules/users/model.js";
-import { config } from "./config.js";
+import { User } from "../modules/users/model.js";
+import { config } from "../config.js";
 
 const strategyOpts = {
   secretOrKey: config.JWT_SECRET,
