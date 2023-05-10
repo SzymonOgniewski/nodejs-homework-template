@@ -16,5 +16,6 @@ api.patch(
   upload.single("avatar"),
   UserController.avatarUpdate
 );
+api.get("/verify/:verificationToken", );
 
 export default api;
