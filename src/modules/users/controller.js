@@ -41,20 +41,21 @@ export const signUp = async (req, res) => {
     const hashedPassword = bcrypt.hashSync(password, salt);
     const avatar = gravatar.url(email, { s: "200", r: "pg", d: "mp" });
     const verificationToken = nanoid();
-    const emailConfig = {
-      from: "szymonogniewski00@gmail.com",
-      to: `${user.email}`,
-      subject: "Verification email",
-      text: `To verify your email press this link:http://localhost:3000/api/users/verify/${verificationToken}`,
-      html: `<strong>To verify your email press this link:</strong><a href="http://localhost:3000/api/users/verify/${verificationToken}">http://localhost:3000/api/users/verify/${verificationToken}</a>`,
-    };
-    sgMail.send(emailConfig).catch((err) => console.log(err));
     const user = await UserService.signUp(
       email,
       hashedPassword,
       avatar,
       verificationToken
     );
+    const emailConfig = {
+      from: "szymonogniewski00@gmail.com",
+      to: `${user.email}`,
+      subject: "Verification email",
+      text: `To verify your email press this link:http://localhost:3000/api/users/verify/${user.verificationToken}`,
+      html: `<strong>To verify your email press this link:</strong><a href="http://localhost:3000/api/users/verify/${user.verificationToken}">http://localhost:3000/api/users/verify/${verificationToken}</a>`,
+    };
+    sgMail.send(emailConfig).catch((err) => console.log(err));
+
     return res.status(201).json(sanitizeRegisteredUser(user));
   } catch (error) {
     if (error.code === 11000) {
@@ -153,7 +154,7 @@ export const verify = async (req, res) => {
   if (user.verify === true)
     return res.status(400).json({ message: "Email is already verified" });
   user.verify = true;
-  user.verificationToken = "verified";
+  user.verificationToken = null;
   user.save();
   return res.status(200).json({ message: "Verification successful" });
 };
