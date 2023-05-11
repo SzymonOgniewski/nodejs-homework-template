@@ -22,5 +22,19 @@ export const User = model(
       default: null,
     },
     avatarURL: { type: String },
+    verify: {
+      type: Boolean,
+      default: false,
+    },
+    verificationToken: {
+      type: String,
+      required: function () {
+        return (
+          typeof this.verificationToken === "undefined " ||
+          (this.verificationToken !== null &&
+            typeof this.verificationToken !== "string")
+        );
+      },
+    },
   })
 );
